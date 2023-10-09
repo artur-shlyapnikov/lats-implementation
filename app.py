@@ -3,7 +3,7 @@ import openai
 import os
 import sys
 import argparse
-sys.path.append('./LATS')
+sys.path.append('./lats')
 from lats_main import lats_main
 
 st.set_page_config(layout="wide")
