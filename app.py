@@ -16,7 +16,7 @@ if 'response_content' not in st.session_state:
 chat_col = st.container()
 
 chat_col.title("CodeLATS")
-description = """This tech demo is an implementation of Language Agent Tree Search (LATS) (https://arxiv.org/abs/2310.04406) built specifically for generating code in the form of python functions. It achieves :green[**state-of-the-art**] results on HumanEval with a :green[**94.4% pass@1 rate**] on GPT-4.
+description = """This demo is an implementation of Language Agent Tree Search (LATS) (https://arxiv.org/abs/2310.04406) built specifically for generating code in the form of python functions. It achieves :green[**state-of-the-art**] results on HumanEval with a :green[**94.4% pass@1 rate**] on GPT-4.
 
 Listed below is an example programming problem (https://leetcode.com/problems/longest-valid-parentheses/description/) to get started with. 
 
