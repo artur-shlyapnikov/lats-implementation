@@ -32,7 +32,7 @@ sidebar = st.sidebar
 runtime_container = st.container()
 
 # Parameters Section
-sidebar.title("**An AI @ UIUC Project** (https://uiuc.ai/)")
+sidebar.title("**A lapis.rocks Project** (https://lapis.rocks/)")
 parameters_section = sidebar.expander("Parameters", expanded=False)
 tree_width = parameters_section.number_input("Tree Width", min_value=1, max_value=5, value=1)
 tree_depth = parameters_section.number_input("Tree Depth", min_value=1, max_value=8, value=3)
