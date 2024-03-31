@@ -1,11 +1,17 @@
-from generators.model import ModelBase, message_to_str
-from .generator_types import Generator
-from .generator_utils import generic_generate_func_impl, generic_generate_internal_tests, generic_generate_self_reflection, generate_with_accumulated_context
-
-from typing import Optional, List, Union
 import ast
 import re
-from .parse import parse_code_block, add_code_block
+from typing import List, Optional, Union
+
+from generators.model import ModelBase
+
+from .generator_types import Generator
+from .generator_utils import (
+    generate_with_accumulated_context,
+    generic_generate_func_impl,
+    generic_generate_internal_tests,
+    generic_generate_self_reflection,
+)
+from .parse import add_code_block, parse_code_block
 
 PY_SIMPLE_COMPLETION_INSTRUCTION = "# Write the body of this function only."
 PY_REFLEXION_COMPLETION_INSTRUCTION = "You are a Python writing assistant. You will be given your past function implementation, a series of unit tests, and a hint to change the implementation appropriately. Write your full implementation (restate the function signature).\n\n-----"
@@ -177,7 +183,7 @@ assert longest_subarray_with_sum_limit([1, 2, 3, 4, 5], 15) == [1, 2, 3, 4, 5]
 assert longest_subarray_with_sum_limit([1, -1, 2, -2, 3, -3], 2) == [1, -1, 2, -2, 3]
 assert longest_subarray_with_sum_limit([], 10) == []
 assert longest_subarray_with_sum_limit([], 0) == []
-assert longest_subarray_with_sum_limit([], -5) == []  
+assert longest_subarray_with_sum_limit([], -5) == []
 Tests failing:
 assert longest_subarray_with_sum_limit([5, 6, 7, 8, 9], 4) == [] # output: [5]
 [self-reflection]:
@@ -252,7 +258,7 @@ class PyGenerator(Generator):
             self_reflection_chat_instruction=PY_SELF_REFLECTION_CHAT_INSTRUCTION,
             self_reflection_completion_instruction=PY_SELF_REFLECTION_COMPLETION_INSTRUCTION,
             add_code_block=lambda x: add_code_block(x, "python"),
-            self_reflection_few_shot=PY_SELF_REFLECTION_FEW_SHOT
+            self_reflection_few_shot=PY_SELF_REFLECTION_FEW_SHOT,
         )
 
     def func_impl(
@@ -307,9 +313,12 @@ class PyGenerator(Generator):
                 add_code_block=lambda x: add_code_block(x, "python"),
             )
 
-    def internal_tests(self, func_sig: str, model: ModelBase, max_num_tests: int = 4) -> List[str]:
+    def internal_tests(
+        self, func_sig: str, model: ModelBase, max_num_tests: int = 4
+    ) -> List[str]:
         def parse_tests(tests: str) -> List[str]:
             return [test.strip() for test in tests.splitlines() if "assert" in test]
+
         """
         Generates tests for a function.
         """
@@ -380,19 +389,25 @@ def py_fix_indentation(func_body: str) -> str:
         2. first line not good
         3. entire body not good
     """
+
     def parse_indent_rec(f_body: str, cur_state: int) -> str:
         f_body = fix_markdown(f_body)
         if cur_state > 1:
             return f_body
-        code = f'{DUMMY_FUNC_SIG}\n{f_body}\n{DUMMY_FUNC_CALL}'
+        code = f"{DUMMY_FUNC_SIG}\n{f_body}\n{DUMMY_FUNC_CALL}"
         try:
             exec(code)
             return f_body
         except (IndentationError, SyntaxError):
-            p_func = handle_first_line_indent if cur_state == 0 else handle_entire_body_indent
+            p_func = (
+                handle_first_line_indent
+                if cur_state == 0
+                else handle_entire_body_indent
+            )
             return parse_indent_rec(p_func(func_body), cur_state + 1)
         except Exception:
             return f_body
+
     return parse_indent_rec(func_body, 0)
 
 

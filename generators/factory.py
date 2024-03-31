@@ -1,6 +1,7 @@
-from .py_generate import PyGenerator
 from .generator_types import Generator
-from .model import ModelBase, GPT4, GPT35, GPTDavinci
+from .model import GPT35, GPT4Turbo, ModelBase
+from .py_generate import PyGenerator
+
 
 def generator_factory(lang: str) -> Generator:
     if lang == "py" or lang == "python":
@@ -10,11 +11,9 @@ def generator_factory(lang: str) -> Generator:
 
 
 def model_factory(model_name: str) -> ModelBase:
-    if model_name == "gpt-4":
-        return GPT4()
+    if model_name == "gpt-4-turbo-preview":
+        return GPT4Turbo()
     elif model_name == "gpt-3.5-turbo-0613":
         return GPT35()
-    elif model_name.startswith("text-davinci"):
-        return GPTDavinci(model_name)
     else:
         raise ValueError(f"Invalid model name: {model_name}")

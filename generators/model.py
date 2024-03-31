@@ -1,18 +1,18 @@
-from typing import List, Union, Optional, Literal
 import dataclasses
+from typing import List, Literal, Optional, Union
 
+import openai
 from tenacity import (
     retry,
     stop_after_attempt,  # type: ignore
     wait_random_exponential,  # type: ignore
 )
-import openai
 
 MessageRole = Literal["system", "user", "assistant"]
 
 
 @dataclasses.dataclass()
-class Message():
+class Message:
     role: MessageRole
     content: str
 
@@ -27,12 +27,12 @@ def messages_to_str(messages: List[Message]) -> str:
 
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
 def gpt_completion(
-        model: str,
-        prompt: str,
-        max_tokens: int = 1024,
-        stop_strs: Optional[List[str]] = None,
-        temperature: float = 0.0,
-        num_comps=1,
+    model: str,
+    prompt: str,
+    max_tokens: int = 1024,
+    stop_strs: Optional[List[str]] = None,
+    temperature: float = 0.0,
+    num_comps=1,
 ) -> Union[List[str], str]:
     response = openai.Completion.create(
         model=model,
@@ -78,18 +78,32 @@ def gpt_chat(
         print(f"An error occurred while calling OpenAI: {e}")
         raise
 
-class ModelBase():
+
+class ModelBase:
     def __init__(self, name: str):
         self.name = name
         self.is_chat = False
 
     def __repr__(self) -> str:
-        return f'{self.name}'
+        return f"{self.name}"
 
-    def generate_chat(self, messages: List[Message], max_tokens: int = 1024, temperature: float = 0.2, num_comps: int = 1) -> Union[List[str], str]:
+    def generate_chat(
+        self,
+        messages: List[Message],
+        max_tokens: int = 1024,
+        temperature: float = 0.2,
+        num_comps: int = 1,
+    ) -> Union[List[str], str]:
         raise NotImplementedError
 
-    def generate(self, prompt: str, max_tokens: int = 1024, stop_strs: Optional[List[str]] = None, temperature: float = 0.0, num_comps=1) -> Union[List[str], str]:
+    def generate(
+        self,
+        prompt: str,
+        max_tokens: int = 1024,
+        stop_strs: Optional[List[str]] = None,
+        temperature: float = 0.0,
+        num_comps=1,
+    ) -> Union[List[str], str]:
         raise NotImplementedError
 
 
@@ -98,23 +112,21 @@ class GPTChat(ModelBase):
         self.name = model_name
         self.is_chat = True
 
-    def generate_chat(self, messages: List[Message], max_tokens: int = 1024, temperature: float = 0.2, num_comps: int = 1) -> Union[List[str], str]:
+    def generate_chat(
+        self,
+        messages: List[Message],
+        max_tokens: int = 1024,
+        temperature: float = 0.2,
+        num_comps: int = 1,
+    ) -> Union[List[str], str]:
         return gpt_chat(self.name, messages, max_tokens, temperature, num_comps)
 
 
-class GPT4(GPTChat):
+class GPT4Turbo(GPTChat):
     def __init__(self):
-        super().__init__("gpt-4")
+        super().__init__("gpt-4-turbo-preview")
 
 
 class GPT35(GPTChat):
     def __init__(self):
         super().__init__("gpt-3.5-turbo")
-
-
-class GPTDavinci(ModelBase):
-    def __init__(self, model_name: str):
-        self.name = model_name
-
-    def generate(self, prompt: str, max_tokens: int = 1024, stop_strs: Optional[List[str]] = None, temperature: float = 0, num_comps=1) -> Union[List[str], str]:
-        return gpt_completion(self.name, prompt, max_tokens, stop_strs, temperature, num_comps)
