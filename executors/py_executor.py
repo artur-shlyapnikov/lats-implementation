@@ -44,8 +44,10 @@ class PyExecutor(Executor):
         feedback += "\n\nTests failed:"
         for test in failed_tests:
             feedback += f"\n{test}"
-            
-        return ExecuteResult(is_passing, feedback, state)
+
+        reward = len(success_tests) / num_tests if num_tests else 0.0
+
+        return ExecuteResult(is_passing, feedback, state, reward)
 
     def evaluate(self, name: str, func: str, test: str, timeout: int = 5) -> bool:
         """

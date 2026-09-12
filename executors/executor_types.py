@@ -5,6 +5,7 @@ class ExecuteResult(NamedTuple):
     is_passing: bool
     feedback: str
     state: Tuple[bool]
+    reward: float = 0.0
 
 class Executor(ABC):
     @abstractmethod

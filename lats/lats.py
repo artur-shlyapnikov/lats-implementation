@@ -133,13 +133,13 @@ def run_lats(
     reflections = []
     implementations = []
     test_feedback = []
-    is_solved = False
 
     # first attempt
 
     implementations.append(cur_func_impl)
     assert isinstance(cur_func_impl, str)
-    is_passing, feedback, _ = exe.execute(cur_func_impl, tests_i)
+    result = exe.execute(cur_func_impl, tests_i)
+    is_passing, feedback = result.is_passing, result.feedback
     test_feedback.append(feedback)
 
     # if solved, exit early
@@ -195,10 +195,11 @@ def run_lats(
             node.children.append(child)
 
             # Simulation
-            reward_real = 0
             for child in node.children:
-                is_passing_internal, feedback_internal, _ = exe.execute(
-                    child.solution, tests_i
+                result = exe.execute(child.solution, tests_i)
+                is_passing_internal, feedback_internal = (
+                    result.is_passing,
+                    result.feedback,
                 )
                 if not is_passing_internal:
                     reflection = gen.self_reflection(
@@ -225,30 +226,11 @@ def run_lats(
                     child.reflection = ""
                     child.test_feedback = feedback_internal
 
-                if "Tested passed:" in feedback_internal:
-                    # Split at "Tests failed:" and get the part before it (which contains the passed tests)
-                    passed_section = feedback_internal.split("Tests failed:")[0]
-                    # Split at "Tested passed:" and get the part after it, then count the non-empty lines
-                    reward_internal = len(
-                        [
-                            line
-                            for line in passed_section.split("Tested passed:")[
-                                1
-                            ].splitlines()
-                            if line.strip() != ""
-                        ]
-                    )
-                    reward_internal = reward_internal / len(tests_i)
-                else:
-                    reward_internal = 0
                 if is_passing_internal or cur_iter == max_iters - 1:
                     item["solution"] = child.solution
                     break
 
-            if is_solved:
-                break
-
-            reward = reward_internal + reward_real
+            reward = result.reward
             child.update(reward)
 
             # Backpropagation
@@ -257,11 +239,7 @@ def run_lats(
                 temp = temp.parent
                 temp.update(reward)
 
-    # Choose the best solution after all iterations
-    if is_solved:
-        best_solution = item["solution"]
-    else:
-        best_solution = root.best_child_value().solution
-        item["solution"] = best_solution
+    best_solution = root.best_child_value().solution
+    item["solution"] = best_solution
 
     return best_solution
